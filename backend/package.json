@@ -4,8 +4,8 @@
   "description": "crash application",
   "main": "server.js",
   "scripts": {
-    "dev": "tsx watch ./src/server.ts",
-    "start": "node ./dist/server.js",
+    "dev": "NODE_ENV=development tsx watch ./src/server.ts",
+    "start": "NODE_ENV=production node ./dist/server.js",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,9 +16,11 @@
   },
   "dependencies": {
     "bullmq": "^5.57.0",
+    "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.4",
     "express": "^5.1.0",
     "ioredis": "^5.7.0",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "zod": "^4.0.17"
   }
 }
