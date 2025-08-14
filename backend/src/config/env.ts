@@ -23,4 +23,4 @@ loadEnvVariables();
 export const GAME_CONFIG = parseEnv(envSchema.gameEnvSchema);
 export const DB_CONFIG = parseEnv(envSchema.dbEnvSchema);
 
-console.error(`${ICONS.SUCCESS} All env variables were loaded successfully`);
+console.log(`${ICONS.SUCCESS} All env variables were loaded successfully`);

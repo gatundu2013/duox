@@ -1,10 +1,6 @@
 import "./config/env";
-import { connectDatabase } from "./db/connection/postgres";
+import { connectPostgres } from "./db/connection/postgres";
+import { connectRedis } from "./db/connection/redis";
 
-import { MultiplierGenerator } from "./services/game/multiplier/multiplier-generator";
-
-const x = new MultiplierGenerator();
-
-connectDatabase();
-
-// console.log(x.generateResults("hellothere", []));
+connectPostgres();
+connectRedis();
