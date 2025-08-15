@@ -3,12 +3,22 @@ import { OTP_PURPOSE } from "../../types/auth";
 import { otpRedisKeys } from "../../utils/redis-keys/otp-redis-keys";
 import crypto from "node:crypto";
 
+/**
+ * OTP Service for generating, sending, and validating one-time passwords
+ * This service implements a sliding window rate limiting mechanism
+ * Redis Keys Structure:
+ * - OTP Storage: `otp:{purpose}:{phoneNumber}`
+ * - Rate Limit: `rate_limit:{purpose}:{phoneNumber}`
+ */
 export class OtpService {
   private static readonly MAX_OTP_PER_WINDOW = 5;
   private static readonly RATE_LIMIT_WINDOW_MS = 1000 * 60 * 5; // 5 minutes
   private static readonly OTP_EXPIRY_MS = 1000 * 60 * 3; // 3 minutes
   private static readonly RATE_LIMIT_KEY_EXPIRY_SECONDS = 1800; // 30 minutes
 
+  /**
+   * Generates and sends an OTP to the specified phone number
+   */
   public async generateOtp(params: {
     phoneNumber: string;
     purpose: OTP_PURPOSE;
@@ -45,6 +55,9 @@ export class OtpService {
     return true;
   }
 
+  /**
+   * Validates an OTP against the stored value for the given phone number
+   */
   public async validateOtp(params: {
     otp: string;
     phoneNumber: string;
@@ -70,6 +83,9 @@ export class OtpService {
     return true;
   }
 
+  /**
+   * Checks if an OTP can be requested based on rate limiting rules
+   */
   private async canRequestOtp(params: {
     phoneNumber: string;
     purpose: OTP_PURPOSE;
@@ -80,7 +96,7 @@ export class OtpService {
     const cutoffTimestamp = Date.now() - OtpService.RATE_LIMIT_WINDOW_MS;
     const rateLimitKey = getRateLimitKey({ phoneNumber, purpose });
 
-    // Remove expired OTP requests
+    // Remove expired OTP requests (sliding window cleanup)
     await redis.zremrangebyscore(rateLimitKey, 0, cutoffTimestamp);
 
     const currentRequestCount = await redis.zcard(rateLimitKey);
@@ -88,6 +104,9 @@ export class OtpService {
     return currentRequestCount < OtpService.MAX_OTP_PER_WINDOW;
   }
 
+  /**
+   * Sends OTP to the specified phone number
+   */
   private async sendOtp(params: {
     otp: string;
     phoneNumber: string;
