@@ -3,18 +3,11 @@ import { OTP_PURPOSE } from "../../types/auth";
 import { otpRedisKeys } from "../../utils/redis-keys/otp-redis-keys";
 import crypto from "node:crypto";
 
-/**
- * OTP Service for generating, sending, and validating one-time passwords
- * This service implements a sliding window rate limiting mechanism
- * Redis Keys Structure:
- * - OTP Storage: `otp:{purpose}:{phoneNumber}`
- * - Rate Limit: `rate_limit:{purpose}:{phoneNumber}`
- */
 export class OtpService {
   private static readonly MAX_OTP_PER_WINDOW = 5;
   private static readonly RATE_LIMIT_WINDOW_MS = 1000 * 60 * 5; // 5 minutes
   private static readonly OTP_EXPIRY_MS = 1000 * 60 * 3; // 3 minutes
-  private static readonly RATE_LIMIT_KEY_EXPIRY_SECONDS = 1800; // 30 minutes
+  private static readonly RATE_LIMIT_KEY_EXPIRY_SEC = 1800; // 30 minutes
 
   /**
    * Generates and sends an OTP to the specified phone number
@@ -46,10 +39,7 @@ export class OtpService {
 
     // Set expiry only for new rate limit key
     if (currentRateLimitCount === 0) {
-      await redis.expire(
-        rateLimitKey,
-        OtpService.RATE_LIMIT_KEY_EXPIRY_SECONDS
-      );
+      await redis.expire(rateLimitKey, OtpService.RATE_LIMIT_KEY_EXPIRY_SEC);
     }
 
     return true;
