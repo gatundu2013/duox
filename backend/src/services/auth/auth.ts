@@ -1,17 +1,15 @@
 import { eq, or } from "drizzle-orm";
-import { db } from "../../db/connection/postgres";
-import { InsertUserT, usersTable } from "../../db/schema/user";
+import { db, InsertUserT, redis, SelectUserT, usersTable } from "../../db";
 import { OTP_PURPOSE } from "../../types/auth";
-import { RegisterPayloadT, RequestOtpPayloadT } from "../../validations/auth";
-import bcrypt from "bcrypt";
+import {
+  formatUser,
+  generateAuthTokens,
+  standardizePhoneNumber,
+  userRedisKeys,
+} from "../../utils";
+import { RegisterPayloadT, RequestOtpPayloadT } from "../../validations";
 import { OtpService } from "../otp/otp";
-import { generateAuthTokens } from "../../utils/auth-cookies";
-import { formatUser } from "../../utils/format-user";
-import { userRedisKeys } from "../../utils/redis-keys/user-redis-key";
-import { redis } from "../../db/connection/redis";
-import { SelectUserT } from "../../db/schema/user";
-import crypto from "crypto";
-import { formatPhoneNumber } from "../../utils/phone-number-format";
+import bcrypt from "bcrypt";
 
 const otpService = new OtpService();
 
@@ -22,7 +20,7 @@ export class AuthService {
         registrationData;
 
       // Standardize username and phoneNumber
-      const standardizedPhoneNumber = formatPhoneNumber(phoneNumber);
+      const standardizedPhoneNumber = standardizePhoneNumber(phoneNumber);
       const standardizedUsername = username.toLowerCase();
 
       if (acceptedTerms !== true) {
@@ -97,7 +95,7 @@ export class AuthService {
   public async requestOtp(params: RequestOtpPayloadT) {
     try {
       const { phoneNumber, purpose } = params;
-      const standardizedPhoneNumber = formatPhoneNumber(phoneNumber);
+      const standardizedPhoneNumber = standardizePhoneNumber(phoneNumber);
 
       // Prevent registration otp request for existing account
       if (purpose === OTP_PURPOSE.REGISTER) {

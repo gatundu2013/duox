@@ -1,6 +1,5 @@
 import "./config/env";
-import { connectPostgres } from "./db/connection/postgres";
-import { connectRedis } from "./db/connection/redis";
+import { connectPostgres, connectRedis } from "./db";
 
 connectPostgres();
 connectRedis();

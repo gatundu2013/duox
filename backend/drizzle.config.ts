@@ -1,4 +1,3 @@
-import "./src/config/env";
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({

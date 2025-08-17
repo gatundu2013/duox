@@ -1,6 +1,6 @@
-import { redis } from "../../db/connection/redis";
+import { redis } from "../../db";
 import { OTP_PURPOSE } from "../../types/auth";
-import { otpRedisKeys } from "../../utils/redis-keys/otp-redis-keys";
+import { otpRedisKeys } from "../../utils";
 import crypto from "node:crypto";
 
 export class OtpService {

@@ -1,4 +1,4 @@
-export function formatPhoneNumber(phoneNumber: string) {
+export function standardizePhoneNumber(phoneNumber: string) {
   let formatted = phoneNumber.trim();
 
   if (formatted.startsWith("+254")) {
