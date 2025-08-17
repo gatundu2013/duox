@@ -1,9 +1,9 @@
 import * as z from "zod";
+import { OTP_PURPOSE } from "../types/auth";
 
-export const phoneNumberRegex = /^(?:\+254|254|0)(?:7|1)\d{8}$/;
-export const usernameRegex =
-  /^(?=.{3,20}$)(?!.*__)[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]$/;
-export const reserverdUsernames = ["admin", "support"];
+const phoneNumberRegex = /^(?:\+254|254|0)(?:7|1)\d{8}$/;
+const usernameRegex = /^(?=.{3,20}$)(?!.*__)[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]$/;
+const reserverdUsernames = ["admin", "support"];
 
 export const registerSchema = z.strictObject({
   username: z
@@ -30,3 +30,13 @@ export const registerSchema = z.strictObject({
     "You must accept the terms and conditions to continue"
   ),
 });
+
+export const requestOtpSchema = z.strictObject({
+  phoneNumber: z
+    .string()
+    .regex(phoneNumberRegex, "Invalid phone number format"),
+  purpose: z.enum(Object.values(OTP_PURPOSE)),
+});
+
+export type RegisterPayloadT = z.infer<typeof registerSchema>;
+export type RequestOtpPayloadT = z.infer<typeof requestOtpSchema>;

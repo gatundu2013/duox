@@ -21,3 +21,6 @@ export const usersTable = pgTable("users", {
   avatarUrl: varchar("avatar_url", { length: 255 }),
   ...timestamps,
 });
+
+export type SelectUserT = typeof usersTable.$inferSelect;
+export type InsertUserT = typeof usersTable.$inferInsert;

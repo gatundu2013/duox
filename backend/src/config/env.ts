@@ -22,5 +22,6 @@ loadEnvVariables();
 
 export const GAME_CONFIG = parseEnv(envSchema.gameEnvSchema);
 export const DB_CONFIG = parseEnv(envSchema.dbEnvSchema);
+export const JWT_CONFIG = parseEnv(envSchema.jwtEnvSchema);
 
 console.log(`${ICONS.SUCCESS} All env variables were loaded successfully`);

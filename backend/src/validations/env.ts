@@ -12,6 +12,11 @@ export const envSchema = {
     DATABASE_URL: z.string(),
     REDIS_URL: z.string(),
   }),
+
+  jwtEnvSchema: z.looseObject({
+    JWT_ACCESS_SECRET: z.string(),
+    JWT_REFRESH_SECRET: z.string(),
+  }),
 };
 
 export function parseEnv<T>(schema: z.ZodSchema<T>): T {
