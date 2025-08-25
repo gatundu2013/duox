@@ -1,10 +1,8 @@
 export const userRedisKeys = {
   getBalanceStorageKey: (params: { userId: string }) => {
-    const { userId } = params;
-    return `user:balance:${userId}`;
+    return `user:balance:${params.userId}`;
   },
-  getProfileStorageKey: (params: { userId: string }) => {
-    const { userId } = params;
-    return `user:profile:${userId}`;
+  getJwtRefreshTokensStorageKey: (params: { userId: string }) => {
+    return `user:jwts:${params.userId}`;
   },
 };

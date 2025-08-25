@@ -1,13 +1,27 @@
 import * as z from "zod";
-import { OTP_PURPOSE } from "../types/auth";
+import { OtpPurposeEnum } from "../types";
 
 const phoneNumberRegex = /^(?:\+254|254|0)(?:7|1)\d{8}$/;
 const usernameRegex = /^(?=.{3,20}$)(?!.*__)[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]$/;
 const reserverdUsernames = ["admin", "support"];
 
+function zodStringInput(name: string) {
+  return z.string({
+    error: (iss) =>
+      iss.input === undefined
+        ? `${name} is required`
+        : `${name} must be a string`,
+  });
+}
+
+const phoneNumber = zodStringInput("Phone number")
+  .trim()
+  .regex(phoneNumberRegex, "Invalid phone number format");
+
 export const registerSchema = z.object({
-  username: z
-    .string()
+  phoneNumber,
+  username: zodStringInput("Username")
+    .trim()
     .toLowerCase()
     .min(3, "Username must be at least 3 characters long")
     .max(20, "Username cannot exceed 20 characters")
@@ -17,12 +31,12 @@ export const registerSchema = z.object({
       path: ["username"],
       abort: true,
     }),
-  phoneNumber: z
-    .string()
-    .regex(phoneNumberRegex, "Invalid phone number format"),
-  password: z.string().min(4, "Password must be at least 4 characters long"),
-  otp: z
-    .string()
+  password: zodStringInput("Password").min(
+    4,
+    "Password must be at least 4 characters long"
+  ),
+  otp: zodStringInput("Otp")
+    .trim()
     .length(4, "OTP must be exactly 4 digits")
     .regex(/^\d{4}$/, "OTP must contain only numbers"),
   acceptedTerms: z.literal(
@@ -32,40 +46,41 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  phoneNumber: z
-    .string()
-    .regex(phoneNumberRegex, "Invalid phone number format"),
-  password: z.string(),
+  phoneNumber,
+  password: zodStringInput("Password"),
 });
 
 export const resetPasswordSchema = z.object({
-  phoneNumber: z
-    .string()
-    .regex(phoneNumberRegex, "Invalid phone number format"),
-  otp: z
-    .string()
+  phoneNumber,
+  otp: zodStringInput("Otp")
+    .trim()
     .length(4, "OTP must be exactly 4 digits")
     .regex(/^\d{4}$/, "OTP must contain only numbers"),
-  newPassword: z.string().min(4, "Password must be at least 4 characters long"),
+  newPassword: zodStringInput("New password").min(
+    4,
+    "Password must be at least 4 characters long"
+  ),
 });
 
 export const changePasswordSchema = z.object({
-  phoneNumber: z
-    .string()
-    .regex(phoneNumberRegex, "Invalid phone number format"),
-  oldPassword: z.string().min(4, "Password must be at least 4 characters long"),
-  newPassword: z.string().min(4, "Password must be at least 4 characters long"),
+  phoneNumber,
+  oldPassword: zodStringInput("Old password"),
+  newPassword: zodStringInput("New password").min(
+    4,
+    "New password must be at least 4 characters long"
+  ),
 });
 
 export const requestOtpSchema = z.object({
-  phoneNumber: z
-    .string()
-    .regex(phoneNumberRegex, "Invalid phone number format"),
-  purpose: z.enum(Object.values(OTP_PURPOSE)),
+  phoneNumber,
+  purpose: z.enum(Object.values(OtpPurposeEnum), "Invalid otp purpose"),
 });
 
-export type RegisterPayloadT = z.infer<typeof registerSchema>;
-export type loginPayloadT = z.infer<typeof loginSchema>;
-export type ResetPasswordPayloadT = z.infer<typeof resetPasswordSchema>;
-export type ChangePasswordPayloadT = z.infer<typeof changePasswordSchema>;
-export type RequestOtpPayloadT = z.infer<typeof requestOtpSchema>;
+export const refreshAccessTokenSchema = z.object({
+  refreshToken: zodStringInput("Refresh token").trim().default(""),
+});
+
+export const logoutSchema = z.object({
+  refreshToken: zodStringInput("Refresh token").trim().default(""),
+  all: z.boolean().default(false),
+});

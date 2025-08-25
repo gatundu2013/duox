@@ -2,6 +2,7 @@ import { boolean, decimal, pgTable, uuid } from "drizzle-orm/pg-core";
 import { usersTable } from "./user";
 import { BetStatus, timestamps } from "./enums";
 import { roundsTable } from "./round";
+import { BetStatusEnum } from "../../types";
 
 export const betsTable = pgTable("bets", {
   betId: uuid("bet_id").notNull().primaryKey(),
@@ -22,6 +23,6 @@ export const betsTable = pgTable("bets", {
     precision: 10,
     scale: 2,
   }),
-  status: BetStatus("status").notNull().default("pending"),
+  status: BetStatus("status").notNull().default(BetStatusEnum.PENDING),
   ...timestamps,
 });

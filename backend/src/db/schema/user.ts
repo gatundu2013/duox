@@ -7,9 +7,10 @@ import {
   boolean,
 } from "drizzle-orm/pg-core";
 import { UserRole, timestamps } from "./enums";
+import { UserRoleEnum } from "../../types";
 
 export const usersTable = pgTable("users", {
-  userId: uuid("user_id").notNull().primaryKey(),
+  userId: uuid("user_id").defaultRandom().primaryKey(),
   username: varchar("username", { length: 30 }).unique().notNull(),
   phoneNumber: char("phone_number", { length: 10 }).unique().notNull(),
   accountBalance: decimal("account_balance", { precision: 10, scale: 2 })
@@ -17,7 +18,7 @@ export const usersTable = pgTable("users", {
     .default("0"),
   password: varchar("password", { length: 90 }).notNull(),
   isActive: boolean("is_active").notNull().default(true),
-  role: UserRole("role").notNull().default("player"),
+  role: UserRole("role").notNull().default(UserRoleEnum.PLAYER),
   avatarUrl: varchar("avatar_url", { length: 255 }),
   ...timestamps,
 });

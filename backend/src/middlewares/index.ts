@@ -1,1 +1,1 @@
-console.log("middlewares");
+export * from "./require-jwt-auth";

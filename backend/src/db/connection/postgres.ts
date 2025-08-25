@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import { DB_CONFIG } from "../../config/env";
 import { ICONS } from "../../utils/icons";
 
-// Initialize PostgreSQL connection pool
+// Connection pool
 const pool = new Pool({
   connectionString: DB_CONFIG.DATABASE_URL,
   max: 20,
@@ -11,10 +11,7 @@ const pool = new Pool({
 
 export const db = drizzle({ client: pool });
 
-export async function connectPostgres(
-  maxRetries = 5,
-  retryDelay = 2000
-): Promise<void> {
+export async function connectPostgres(maxRetries = 5, retryDelay = 2000) {
   let attempt = 1;
 
   while (attempt <= maxRetries) {

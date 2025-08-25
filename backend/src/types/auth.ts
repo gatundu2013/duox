@@ -1,4 +1,12 @@
-export enum OTP_PURPOSE {
-  REGISTER = "register",
-  RESET_PASSWORD = "reset_password",
+declare global {
+  namespace Express {
+    interface Request {
+      user: JwtPayloadI;
+    }
+  }
+}
+
+export interface JwtPayloadI {
+  userId: string;
+  role: string;
 }

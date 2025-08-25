@@ -1,13 +1,15 @@
 import { pgEnum, timestamp } from "drizzle-orm/pg-core";
+import {
+  BetStatusEnum,
+  RoundStatusEnum,
+  UserRoleEnum,
+  VehicleTypeEnum,
+} from "../../types";
 
-export const UserRole = pgEnum("user_role", ["admin", "player"]);
-export const BetStatus = pgEnum("bet_status", ["pending", "busted", "won"]);
-export const VehicleType = pgEnum("vehicle_type", ["matatu", "bodaboda"]);
-export const RoundStatus = pgEnum("round_status", [
-  "pending",
-  "running",
-  "ended",
-]);
+export const UserRole = pgEnum("user_role", UserRoleEnum);
+export const BetStatus = pgEnum("bet_status", BetStatusEnum);
+export const VehicleType = pgEnum("vehicle_type", VehicleTypeEnum);
+export const RoundStatus = pgEnum("round_status", RoundStatusEnum);
 
 export const timestamps = {
   createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
