@@ -16,7 +16,7 @@ export class MultiplierGenerator {
   private rawMultiplier: number | null;
   private finalMultiplier: number | null;
   private houseEdge: number | null;
-  private clientSeed: string | null;
+  private clientSeed: string | null; // Derived from user seeds
   private userSeeds: UserSeedInfo[] | [];
 
   constructor() {
