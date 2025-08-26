@@ -1,8 +1,6 @@
 import { initApp } from "./app";
-import { roundStateManager } from "./services/game/round-state-manager";
+import { gameLifeCycleManager } from "./services/game/game-life-cylcle-manager";
 
 initApp();
 
-roundStateManager.generateRoundResults();
-
-console.log(roundStateManager);
+gameLifeCycleManager.startGameLoop();

@@ -29,3 +29,11 @@ export enum RoundStatusEnum {
   RUNNING = "running",
   ENDED = "ended",
 }
+
+export enum RoundPhaseEnum {
+  BETTING = "betting",
+  RUNNING = "running",
+  ENDED = "ended",
+  PREPARING = "preparing",
+  ERROR = "error",
+}
