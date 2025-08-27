@@ -1,17 +1,42 @@
-export interface UserSeedInfo {
+// ---------- Simulate Multipliers ------------
+export type MultiplierDistributionKeyT =
+  | "1-2"
+  | "2-3"
+  | "3-5"
+  | "5-10"
+  | "10-30"
+  | "30-50"
+  | "50-100"
+  | "100-500"
+  | "500-1000"
+  | "1000-5000"
+  | "5000+";
+
+export type MultiplierRangeT = {
+  minInc: number;
+  maxExc: number;
+};
+
+export type MultiplierDistributionBucketT = Record<
+  MultiplierDistributionKeyT,
+  { count: number; probability: number }
+>;
+
+// ----------- Multiplier Generator -----------
+export interface UserSeedI {
   userId: string;
-  clientSeed: string;
+  seed: string;
 }
 
-export interface MultiplierResult {
-  serverSeed: string;
-  hashedServerSeed: string;
-  clientSeed: string;
-  roundHash: string;
-  hashAsDecimal: number;
-  rawMultiplier: number;
-  userSeeds: UserSeedInfo[] | null;
-  normalizedValue: number;
-  finalMultiplier: number;
+export interface ProvablyFairDataI {
+  serverSeed: string | null;
+  hashedServerSeed: string | null;
+  multiplierHash: string | null;
+  hashAsDecimal: number | null;
+  normalizedValue: number | null;
+  rawMultiplier: number | null;
+  finalMultiplier: number | null;
   houseEdge: number;
+  clientSeed: string | null;
+  clientSeedDetails: UserSeedI[];
 }
