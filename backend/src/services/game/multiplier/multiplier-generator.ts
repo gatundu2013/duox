@@ -16,10 +16,17 @@ export class MultiplierGenerator {
   // Prevents precision loss when converting multiplier hash to a number.
   private static readonly ROUND_HASH_SLICE_LEN = 13;
 
-  private readonly provablyFairData: ProvablyFairDataI;
+  private provablyFairData: ProvablyFairDataI;
 
   constructor() {
-    this.provablyFairData = {
+    this.provablyFairData = this.createInitialProvablyFairData();
+  }
+
+  /**
+   * Initial Provably fair data
+   */
+  private createInitialProvablyFairData(): ProvablyFairDataI {
+    return {
       serverSeed: null,
       hashedServerSeed: null,
       multiplierHash: null,
@@ -139,5 +146,9 @@ export class MultiplierGenerator {
     this.calculateMultiplier();
 
     return this.provablyFairData;
+  }
+
+  public resetState() {
+    this.provablyFairData = this.createInitialProvablyFairData();
   }
 }
