@@ -1,92 +1,105 @@
 import crypto from "node:crypto";
 import { toFixedDecimals } from "../../../utils/to-fixed-decimals";
-import { MultiplierResult, UserSeedInfo } from "../../../types/game";
+import { ProvablyFairDataI, UserSeedI } from "../../../types/game";
 import { GAME_CONFIG } from "../../../config/env";
 
+/**
+ * MultiplierGenerator handles generation of provably fair results.
+ *
+ * Usage:
+ * 1. Call `generateServerSeed()` before betting starts (commitment).
+ * 2. Call `generateResults(clientSeed, userSeeds)` after bets are placed.
+ * 3. Reveal serverSeed at round end for verification.
+ */
 export class MultiplierGenerator {
-  private readonly config = {
-    ROUND_HASH_SLICE_LEN: 13,
-  };
+  // Use 13 hex chars (~52 bits), safely below JS Number.MAX_SAFE_INTEGER (53 bits).
+  // Prevents precision loss when converting multiplier hash to a number.
+  private static readonly ROUND_HASH_SLICE_LEN = 13;
 
-  private serverSeed: string | null;
-  private hashedServerSeed: string | null;
-  private roundHash: string | null;
-  private hashAsDecimal: number | null;
-  private normalizedValue: number | null;
-  private rawMultiplier: number | null;
-  private finalMultiplier: number | null;
-  private houseEdge: number | null;
-  private clientSeed: string | null; // Derived from user seeds
-  private userSeeds: UserSeedInfo[] | [];
+  private readonly provablyFairData: ProvablyFairDataI;
 
   constructor() {
-    this.serverSeed = null;
-    this.hashedServerSeed = null;
-    this.clientSeed = null;
-    this.roundHash = null;
-    this.hashAsDecimal = null;
-    this.normalizedValue = null;
-    this.rawMultiplier = null;
-    this.finalMultiplier = null;
-    this.houseEdge = null;
-    this.userSeeds = [];
+    this.provablyFairData = {
+      serverSeed: null,
+      hashedServerSeed: null,
+      multiplierHash: null,
+      hashAsDecimal: null,
+      normalizedValue: null,
+      rawMultiplier: null,
+      finalMultiplier: null,
+      houseEdge: GAME_CONFIG.HOUSE_EDGE,
+      clientSeed: null,
+      clientSeedDetails: [],
+    };
   }
 
   /**
-   * Generate cryptographically secure server seed
+   * Generates a cryptographically secure serverSeed and its SHA256 commitment.
+   *
+   * - hashedServerSeed (commitment) is revealed before the round starts(Betting Phase).
+   * - serverSeed is revealed after the round for verification.
+   * - Ensures fairness via commit–reveal: server cannot change seed mid-round.
    */
-  private generateServerSeed(): void {
+  public generateServerSeed(): void {
     const serverSeed = crypto.randomBytes(32).toString("hex");
+
     const hashedServerSeed = crypto
       .createHash("sha256")
       .update(serverSeed)
       .digest("hex");
 
-    this.serverSeed = serverSeed;
-    this.hashedServerSeed = hashedServerSeed;
+    this.provablyFairData.serverSeed = serverSeed;
+    this.provablyFairData.hashedServerSeed = hashedServerSeed;
   }
 
   /**
-   * Generate round hash from server and client seeds
+   * Generates multiplierHash from serverSeed + clientSeed.
+   *
+   * - Uses SHA256 for fixed-length, uniformly distributed output.
+   * - Ensures small input changes produce unpredictable results
+   *   (avalanche effect).
+   * - Hashing is not for secrecy, but for standardization and fairness.
    */
-  private generateRoundHash(): void {
-    if (!this.serverSeed || !this.clientSeed) {
+  private generateMultiplierHash(): void {
+    const { serverSeed, clientSeed } = this.provablyFairData;
+
+    if (!serverSeed || !clientSeed) {
       throw new Error(
-        "MultiplierGenerator: Server seed and client seed must be set before generating round hash"
+        "Server seed and client seed must be provided before generating multiplier hash"
       );
     }
 
-    const combinedSeed = `${this.serverSeed}${this.clientSeed}`;
-    const roundHash = crypto
+    const combinedSeed = `${serverSeed}${clientSeed}`;
+
+    const multiplierHash = crypto
       .createHash("sha256")
       .update(combinedSeed)
       .digest("hex");
 
-    this.roundHash = roundHash;
+    this.provablyFairData.multiplierHash = multiplierHash;
   }
 
   /**
-   * Calculate multiplier from round hash
+   * Converts multiplierHash into finalMultiplier with house edge applied.
+   * Uses inverse exponential distribution to calculate multipliers.
    */
   private calculateMultiplier(): void {
-    if (!this.roundHash) {
-      throw new Error("MultiplierGenerator: Round hash was not generated");
+    if (!this.provablyFairData.multiplierHash) {
+      throw new Error("Multiplier hash was not generated");
     }
 
     const { HOUSE_EDGE, MIN_MULTIPLIER, MAX_MULTIPLIER } = GAME_CONFIG;
 
-    // 13 chars ≈ 52 bits, safely within Number.MAX_SAFE_INTEGER (53 bits)
-    // This prevents precision issues
-    const slicedHash = this.roundHash.slice(
+    const slicedHash = this.provablyFairData.multiplierHash.slice(
       0,
-      this.config.ROUND_HASH_SLICE_LEN
+      MultiplierGenerator.ROUND_HASH_SLICE_LEN
     );
 
     const numBytes = slicedHash.length / 2; // 1 byte = 2 hex chars
     const numBits = numBytes * 8;
     const maxHashValue = Math.pow(2, numBits) - 1;
 
-    // Normalize the hash to range [0, 1)
+    // Normalize the hash in range [0, 1)
     const hashAsDecimal = parseInt(slicedHash, 16);
     const normalizedValue = hashAsDecimal / maxHashValue;
 
@@ -104,42 +117,27 @@ export class MultiplierGenerator {
       Math.min(MAX_MULTIPLIER, finalMultiplier)
     );
 
-    this.rawMultiplier = rawMultiplier;
-    this.finalMultiplier = finalMultiplier;
-    this.hashAsDecimal = hashAsDecimal;
-    this.normalizedValue = normalizedValue;
-    this.houseEdge = HOUSE_EDGE;
+    this.provablyFairData.rawMultiplier = rawMultiplier;
+    this.provablyFairData.finalMultiplier = finalMultiplier;
+    this.provablyFairData.hashAsDecimal = hashAsDecimal;
+    this.provablyFairData.normalizedValue = normalizedValue;
   }
 
-  /**
-   * Generate complete multiplier results
-   */
-  public generateResults(
+  // Generate complete multiplier results
+  public generateFinalResults(
     clientSeed: string,
-    userSeeds: UserSeedInfo[] | []
-  ): MultiplierResult {
+    userSeeds: UserSeedI[] | []
+  ): ProvablyFairDataI {
     if (!clientSeed || !clientSeed.trim()) {
       throw new Error("MultiplierGenerator: Client seed is required");
     }
 
-    this.clientSeed = clientSeed;
-    this.userSeeds = userSeeds ?? [];
+    this.provablyFairData.clientSeed = clientSeed;
+    this.provablyFairData.clientSeedDetails = userSeeds;
 
-    this.generateServerSeed();
-    this.generateRoundHash();
+    this.generateMultiplierHash();
     this.calculateMultiplier();
 
-    return {
-      serverSeed: this.serverSeed!,
-      hashedServerSeed: this.hashedServerSeed!,
-      hashAsDecimal: this.hashAsDecimal!,
-      clientSeed: this.clientSeed!,
-      userSeeds: this.userSeeds!,
-      roundHash: this.roundHash!,
-      normalizedValue: this.normalizedValue!,
-      rawMultiplier: this.rawMultiplier!,
-      finalMultiplier: this.finalMultiplier!,
-      houseEdge: this.houseEdge!,
-    };
+    return this.provablyFairData;
   }
 }
