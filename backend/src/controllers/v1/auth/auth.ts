@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { AuthService } from "../../../services/auth/auth";
+import { validateApiRequest } from "../../../validations/api-request";
 import {
   changePasswordSchema,
   loginSchema,
@@ -7,10 +9,8 @@ import {
   registerSchema,
   requestOtpSchema,
   resetPasswordSchema,
-} from "../../../validations";
-import { AuthService } from "../../../services/auth";
-import { validateApiRequest } from "../../../validations/api-request";
-import { handleApiError } from "../../../utils";
+} from "../../../validations/auth";
+import { handleApiError } from "../../../utils/handle-api-error";
 
 const authService = new AuthService();
 
@@ -90,7 +90,6 @@ export class AuthController {
         refreshAccessTokenSchema,
         req.body
       );
-
       const results = await authService.refreshAccessToken(refreshTokenPayload);
       res.status(200).json(results);
     } catch (err) {

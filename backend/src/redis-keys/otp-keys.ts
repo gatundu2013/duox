@@ -1,4 +1,4 @@
-import { OtpPurposeEnum } from "../../types";
+import { OtpPurposeEnum } from "../types/shared/enums";
 
 export const otpRedisKeys = {
   getStorageKey: (params: { purpose: OtpPurposeEnum; phoneNumber: string }) => {

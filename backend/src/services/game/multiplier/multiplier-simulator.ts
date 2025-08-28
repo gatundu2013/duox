@@ -2,11 +2,11 @@ import {
   MultiplierDistributionBucketT,
   MultiplierDistributionKeyT,
   MultiplierRangeT,
-} from "../../../types";
-import { toFixedDecimals } from "../../../utils";
+} from "../../../types/game";
+import { toFixedDecimals } from "../../../utils/to-fixed-decimals";
 import { MultiplierGenerator } from "./multiplier-generator";
 
-export class SimulateMultiplierDistribution {
+export class MultiplierSimulator {
   public static readonly MULTIPLIER_DISTRIBUTION: Record<
     MultiplierDistributionKeyT,
     MultiplierRangeT
@@ -36,7 +36,7 @@ export class SimulateMultiplierDistribution {
   private generateDistributionBucket() {
     const bucket = {} as MultiplierDistributionBucketT;
 
-    for (const key in SimulateMultiplierDistribution.MULTIPLIER_DISTRIBUTION) {
+    for (const key in MultiplierSimulator.MULTIPLIER_DISTRIBUTION) {
       const typedKey = key as MultiplierDistributionKeyT;
       bucket[typedKey] = { count: 0, probability: 0 };
     }
@@ -76,7 +76,7 @@ export class SimulateMultiplierDistribution {
 
       // Update bucket counts
       for (const [key, { minInc, maxExc }] of Object.entries(
-        SimulateMultiplierDistribution.MULTIPLIER_DISTRIBUTION
+        MultiplierSimulator.MULTIPLIER_DISTRIBUTION
       )) {
         const typedKey = key as MultiplierDistributionKeyT;
 

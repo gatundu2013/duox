@@ -2,7 +2,7 @@ import { boolean, decimal, pgTable, uuid } from "drizzle-orm/pg-core";
 import { usersTable } from "./user";
 import { BetStatus, timestamps } from "./enums";
 import { roundsTable } from "./round";
-import { BetStatusEnum } from "../../types";
+import { BetStatusEnum } from "../../types/shared/enums";
 
 export const betsTable = pgTable("bets", {
   betId: uuid("bet_id").notNull().primaryKey(),

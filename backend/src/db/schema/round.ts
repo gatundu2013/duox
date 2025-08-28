@@ -8,10 +8,11 @@ import {
 } from "drizzle-orm/pg-core";
 import { RoundStatus, timestamps, VehicleType } from "./enums";
 import { usersTable } from "./user";
+import { RoundStatusEnum } from "../../types/shared/enums";
 
 export const roundsTable = pgTable("rounds", {
   roundId: uuid("round_id").notNull().primaryKey(),
-  status: RoundStatus("status").notNull().default("pending"),
+  status: RoundStatus("status").notNull().default(RoundStatusEnum.PENDING),
   serverSeed: varchar("server_seed", { length: 100 }).notNull(),
   hashedServerSeed: varchar("hashed_server_seed", { length: 100 }).notNull(),
   clientSeed: varchar("client_seed", { length: 100 }).notNull(),

@@ -7,7 +7,7 @@ import {
   boolean,
 } from "drizzle-orm/pg-core";
 import { UserRole, timestamps } from "./enums";
-import { UserRoleEnum } from "../../types";
+import { UserRoleEnum } from "../../types/shared/enums";
 
 export const usersTable = pgTable("users", {
   userId: uuid("user_id").defaultRandom().primaryKey(),

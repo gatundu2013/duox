@@ -38,6 +38,7 @@ export interface LogoutPayload {
 }
 
 // -------- Responses --------
+
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;

@@ -23,12 +23,12 @@ export type MultiplierDistributionBucketT = Record<
 >;
 
 // ----------- Multiplier Generator -----------
-export interface UserSeedI {
+export interface ClientSeedContributorI {
   userId: string;
   seed: string;
 }
 
-export interface ProvablyFairDataI {
+export interface MultiplierDetailsI {
   serverSeed: string | null;
   hashedServerSeed: string | null;
   multiplierHash: string | null;
@@ -38,5 +38,5 @@ export interface ProvablyFairDataI {
   finalMultiplier: number | null;
   houseEdge: number;
   clientSeed: string | null;
-  clientSeedDetails: UserSeedI[];
+  clientSeedContributions: ClientSeedContributorI[] | [];
 }

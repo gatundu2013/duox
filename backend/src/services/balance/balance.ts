@@ -1,6 +1,6 @@
-import { redis } from "../../db";
-import { ApiError } from "../../errors";
-import { userRedisKeys } from "../../utils";
+import { redis } from "../../db/connection/redis";
+import { ApiError } from "../../errors/base-errors";
+import { userRedisKeys } from "../../redis-keys/user-key";
 
 export class BalanceService {
   private static readonly BALANCE_CACHE_EXPIRY_SECONDS = 60 * 60 * 24; // 24 hours

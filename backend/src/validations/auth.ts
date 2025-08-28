@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { OtpPurposeEnum } from "../types";
+import { OtpPurposeEnum } from "../types/shared/enums";
 
 const phoneNumberRegex = /^(?:\+254|254|0)(?:7|1)\d{8}$/;
 const usernameRegex = /^(?=.{3,20}$)(?!.*__)[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]$/;

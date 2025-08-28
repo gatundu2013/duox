@@ -1,4 +1,4 @@
-import { ApiErrorI } from "../types";
+import { ApiErrorI } from "../types/error";
 import { ApiError } from "./base-errors";
 
 export class AuthError extends ApiError {

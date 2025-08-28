@@ -1,1 +1,1 @@
-
+console.log("game types");

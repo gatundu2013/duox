@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { AuthController } from "../../../controllers/v1";
-import { requireJwtAuth } from "../../../middlewares";
+import { requireJwtAuth } from "../../../middlewares/require-jwt-auth";
+import { AuthController } from "../../../controllers/v1/auth/auth";
 
 export const authRouterV1 = Router();
 const authController = new AuthController();

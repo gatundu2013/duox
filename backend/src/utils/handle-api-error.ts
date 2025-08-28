@@ -1,4 +1,4 @@
-import { ApiError } from "../errors";
+import { ApiError } from "../errors/base-errors";
 
 export function handleApiError(err: unknown, fallBackMessage: string) {
   let errMsg = fallBackMessage;

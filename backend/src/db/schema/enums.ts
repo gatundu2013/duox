@@ -4,7 +4,7 @@ import {
   RoundStatusEnum,
   UserRoleEnum,
   VehicleTypeEnum,
-} from "../../types";
+} from "../../types/shared/enums";
 
 export const UserRole = pgEnum("user_role", UserRoleEnum);
 export const BetStatus = pgEnum("bet_status", BetStatusEnum);

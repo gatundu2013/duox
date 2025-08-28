@@ -1,8 +1,8 @@
-import { redis } from "../../db";
-import { AuthError } from "../../errors";
-import { OtpPurposeEnum } from "../../types";
-import { otpRedisKeys } from "../../utils";
 import crypto from "node:crypto";
+import { OtpPurposeEnum } from "../../types/shared/enums";
+import { otpRedisKeys } from "../../redis-keys/otp-keys";
+import { AuthError } from "../../errors/auth-error";
+import { redis } from "../../db/connection/redis";
 
 export class OtpService {
   private static readonly MAX_OTP_PER_WINDOW = 5; // Maximum OTPs per time window

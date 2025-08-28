@@ -1,8 +1,11 @@
 import { and, eq, or } from "drizzle-orm";
-import { db, InsertUserT, redis, SelectUserT, usersTable } from "../../db";
-import { standardizePhoneNumber, userRedisKeys } from "../../utils";
-import { OtpService } from "../otp";
-import { BalanceService } from "../balance";
+import { db } from "../../db/connection/postgres";
+import { redis } from "../../db/connection/redis";
+import { usersTable, SelectUserT, InsertUserT } from "../../db/schema/user";
+import { standardizePhoneNumber } from "../../utils/standardize-phone-number";
+import { userRedisKeys } from "../../redis-keys/user-key";
+import { OtpService } from "../otp/otp";
+import { BalanceService } from "../balance/balance";
 import bcrypt from "bcrypt";
 import {
   ChangePasswordPayloadI,
@@ -12,7 +15,6 @@ import {
   LoginResponse,
   LogoutPayload,
   LogoutResponse,
-  OtpPurposeEnum,
   RefreshAccessTokenResponse,
   RegisterPayloadI,
   RegisterResponse,
@@ -20,12 +22,13 @@ import {
   RequestOtpResponse,
   ResetPasswordPayloadI,
   ResetPasswordResponse,
-  UserRoleEnum,
-} from "../../types";
+} from "../../types/shared/auth";
+import { OtpPurposeEnum, UserRoleEnum } from "../../types/shared/enums";
 import { JwtPayloadI } from "../../types/auth";
 import { JWT_CONFIG } from "../../config/env";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { ApiError, AuthError } from "../../errors";
+import { ApiError } from "../../errors/base-errors";
+import { AuthError } from "../../errors/auth-error";
 
 const otpService = new OtpService();
 const balanceService = new BalanceService();

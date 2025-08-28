@@ -1,5 +1,5 @@
-import { ValidationError } from "../utils";
 import * as z from "zod";
+import { ValidationError } from "../errors/validation-error";
 
 export function validateApiRequest<T, K>(schema: z.ZodType<T>, payload: K): T {
   const { error, success, data } = schema.safeParse(payload);
