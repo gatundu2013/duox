@@ -1,4 +1,6 @@
-// ---------- Simulate Multipliers ------------
+import { ClientSeedContributorI } from "../../shared/game/vehicle";
+
+// ---------- Multiplier Simulator ------------
 export type MultiplierDistributionKeyT =
   | "1-2"
   | "2-3"
@@ -23,10 +25,6 @@ export type MultiplierDistributionBucketT = Record<
 >;
 
 // ----------- Multiplier Generator -----------
-export interface ClientSeedContributorI {
-  userId: string;
-  seed: string;
-}
 
 export interface MultiplierDetailsI {
   serverSeed: string | null;

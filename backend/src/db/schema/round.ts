@@ -8,7 +8,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { RoundStatus, timestamps, VehicleType } from "./enums";
 import { usersTable } from "./user";
-import { RoundStatusEnum } from "../../types/shared/enums";
+import { RoundStatusEnum } from "../../types/shared/game/round";
 
 export const roundsTable = pgTable("rounds", {
   roundId: uuid("round_id").notNull().primaryKey(),

@@ -1,10 +1,8 @@
 import { pgEnum, timestamp } from "drizzle-orm/pg-core";
-import {
-  BetStatusEnum,
-  RoundStatusEnum,
-  UserRoleEnum,
-  VehicleTypeEnum,
-} from "../../types/shared/enums";
+import { UserRoleEnum } from "../../types/shared/auth";
+import { BetStatusEnum } from "../../types/backend/bet";
+import { VehicleTypeEnum } from "../../types/shared/game/vehicle";
+import { RoundStatusEnum } from "../../types/shared/game/round";
 
 export const UserRole = pgEnum("user_role", UserRoleEnum);
 export const BetStatus = pgEnum("bet_status", BetStatusEnum);

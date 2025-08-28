@@ -1,10 +1,8 @@
 import crypto from "node:crypto";
 import { toFixedDecimals } from "../../../utils/to-fixed-decimals";
-import {
-  ClientSeedContributorI,
-  MultiplierDetailsI,
-} from "../../../types/game";
 import { GAME_CONFIG } from "../../../config/env";
+import { MultiplierDetailsI } from "../../../types/backend/game/multiplier";
+import { ClientSeedContributorI } from "../../../types/shared/game/vehicle";
 
 /***
  * Handles generation of multipliers that a provably fair

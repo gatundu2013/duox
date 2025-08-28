@@ -1,4 +1,4 @@
-import { BaseErrorI } from "../types/error";
+import { BaseErrorI } from "../types/backend/error";
 
 export class BaseError extends Error {
   protected internalMessage: string;

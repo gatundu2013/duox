@@ -15,6 +15,7 @@ import {
   LoginResponse,
   LogoutPayload,
   LogoutResponse,
+  OtpPurposeEnum,
   RefreshAccessTokenResponse,
   RegisterPayloadI,
   RegisterResponse,
@@ -22,9 +23,9 @@ import {
   RequestOtpResponse,
   ResetPasswordPayloadI,
   ResetPasswordResponse,
+  UserRoleEnum,
 } from "../../types/shared/auth";
-import { OtpPurposeEnum, UserRoleEnum } from "../../types/shared/enums";
-import { JwtPayloadI } from "../../types/auth";
+import { JwtPayloadI } from "../../types/backend/auth";
 import { JWT_CONFIG } from "../../config/env";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { ApiError } from "../../errors/base-errors";

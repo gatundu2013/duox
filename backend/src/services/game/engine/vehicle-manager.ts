@@ -1,130 +1,225 @@
-import { ClientSeedContributorI } from "../../../types/game";
-import { VehicleTypeEnum } from "../../../types/shared/enums";
+import {
+  ClientSeedContributorI,
+  VehicleLiveStateI,
+  VehicleStatusEnum,
+  VehicleTypeEnum,
+} from "../../../types/shared/game/vehicle";
+import {
+  ClientSeedDetailsI,
+  InitialVehicleStateI,
+} from "../../../types/backend/game/vehicle";
+import { toFixedDecimals } from "../../../utils/to-fixed-decimals";
 import { MultiplierGenerator } from "../multiplier/multiplier-generator";
 
+/**
+ * Manages vehicle's lifecycle and state.
+ *
+ * Handles:
+ * - Vehicle state (type, multiplier, status, player counts)
+ * - Client seed collection for fair results
+ * - Multiplier generation and progression
+ * - Crash detection and final results
+ *
+ * Usage:
+ * 1) new VehicleManager(type)
+ * 2) startEngine() - prepare server seed
+ * 3) loadCargo() - collect client seeds
+ * 4) setDestination() - generate final results
+ * 5) accelerate() - increment multiplier until crash
+ */
 export class VehicleManager {
   private static readonly MULTIPLIER_GROWTH_RATE = 0.0045;
   private static readonly INITIAL_MULTIPLIER = 1.0;
   private static readonly DEFAULT_SEED_PREFIX = "duox";
   private static readonly MAX_SEEDS_PER_VEHICLE = 2;
 
-  private readonly type: VehicleTypeEnum;
-
-  private liveStats = {
-    totalPlayers: 0,
-    totalBetAmount: 0,
-  };
-
-  private crashed: boolean;
-  private currentMultiplier: number;
-  private finalMultiplier: number | null;
-  private clientSeedDetails: {
-    clientSeed: string;
-    clientSeedContributions: ClientSeedContributorI[];
-  } | null = null;
+  private liveState: VehicleLiveStateI;
+  private clientSeedDetails: ClientSeedDetailsI | null;
   private multiplierGenerator: MultiplierGenerator | null;
 
-  constructor(vehicleType: VehicleTypeEnum) {
-    if (!vehicleType) {
-      throw new Error("Vehicle type was not provided");
+  constructor(type: VehicleTypeEnum) {
+    if (!type) {
+      throw new Error("Vehicle type is required");
     }
 
-    this.type = vehicleType;
-    this.crashed = false;
+    const state = this.initializeState(type);
+
+    this.liveState = state.liveState;
+    this.clientSeedDetails = state.clientSeedDetails;
     this.multiplierGenerator = null;
-    this.currentMultiplier = VehicleManager.INITIAL_MULTIPLIER;
-    this.finalMultiplier = null;
   }
 
-  public incrementMultiplier() {
-    if (this.crashed) return;
-
-    if (!this.finalMultiplier) {
-      throw new Error("Final multiplier has not been set yet");
-    }
-
-    this.currentMultiplier *= 1 + VehicleManager.MULTIPLIER_GROWTH_RATE;
-
-    console.log("running");
-    if (this.currentMultiplier >= this.finalMultiplier) {
-      this.currentMultiplier = this.finalMultiplier;
-      this.crashed = true;
-    }
+  /**
+   * Creates the initial state for the vehicle.
+   * Sets up basic values but doesn't start the game yet.
+   */
+  private initializeState(type: VehicleTypeEnum): InitialVehicleStateI {
+    return {
+      liveState: {
+        type,
+        currentMultiplier: VehicleManager.INITIAL_MULTIPLIER,
+        status: VehicleStatusEnum.PENDING,
+        totalPlayers: 0,
+        totalBetAmount: 0,
+        finalMultiplier: null,
+      },
+      clientSeedDetails: null,
+      multiplierGenerator: null,
+    };
   }
 
-  /** Generate a new server seed (provably fair commitment). */
-  public generateServerSeed(): void {
+  /**
+   * Start the engine by generating a server seed and its hash.
+   * Call this before loading cargo or setting destination.
+   */
+  public startEngine(): void {
     this.multiplierGenerator = new MultiplierGenerator();
     this.multiplierGenerator.generateServerSeed();
   }
 
-  /** Finalize round results, ensuring a default client seed exists. */
-  public generateFinalResults(): void {
+  /**
+   * Add a client seed contribution to this vehicle.
+   * Combines all seeds to create fair final results.
+   *
+   * Rules:
+   * - Only accepts seeds for this vehicle type
+   * - Maximum 2 contributions per vehicle
+   * - Each user can only contribute once
+   */
+  public loadCargo(
+    vehicle: VehicleTypeEnum,
+    seedInfo: ClientSeedContributorI
+  ): boolean {
+    // Check if engine was started
     if (!this.multiplierGenerator) {
-      throw new Error("Multiplier Generator was not initialized");
+      throw new Error(
+        "loadCargo() failed: Engine not started. Call startEngine() first."
+      );
     }
 
-    // Client seed is provided - server generated default onces
+    // Only accept contributions for this vehicle type
+    if (this.liveState.type !== vehicle) return false;
+
+    if (!this.clientSeedDetails) {
+      this.clientSeedDetails = { clientSeed: "", clientSeedContributors: [] };
+    }
+
+    const { clientSeed, clientSeedContributors } = this.clientSeedDetails;
+
+    // Check if vehicle has reached max seed capacity
+    const vehicleHasMaxSeeds =
+      clientSeedContributors.length >= VehicleManager.MAX_SEEDS_PER_VEHICLE;
+    if (vehicleHasMaxSeeds) return false;
+
+    // Prevent user from contributing more than once
+    const userAlreadyContributed = clientSeedContributors.some(
+      ({ userId }) => userId === seedInfo.userId
+    );
+    if (userAlreadyContributed) return false;
+
+    // Accept contribution: append seed and record contributor
+    this.clientSeedDetails.clientSeed = `${clientSeed}${seedInfo.seed}`.trim();
+    this.clientSeedDetails.clientSeedContributors.push(seedInfo);
+
+    return true;
+  }
+
+  /**
+   * Generate final results and set the crash multiplier.
+   * Call this once after loading all cargo.
+   * Uses a default seed if no client seeds were provided.
+   */
+  public setDestination(): void {
+    if (!this.multiplierGenerator) {
+      throw new Error(
+        "setDestination() failed: Multiplier generator not initialized. Call startEngine() first."
+      );
+    }
+
+    // Use default seed if no client contributions were made
     if (!this.clientSeedDetails) {
       this.clientSeedDetails = {
-        clientSeed: `${VehicleManager.DEFAULT_SEED_PREFIX}:${this.type}`,
-        clientSeedContributions: [],
+        clientSeed: `${VehicleManager.DEFAULT_SEED_PREFIX}:${this.liveState.type}`,
+        clientSeedContributors: [],
       };
     }
 
     this.multiplierGenerator.generateFinalResults(
       this.clientSeedDetails.clientSeed,
-      this.clientSeedDetails.clientSeedContributions
+      this.clientSeedDetails.clientSeedContributors
     );
-
-    this.finalMultiplier = this.multiplierGenerator.getState().finalMultiplier;
+    this.liveState.finalMultiplier =
+      this.multiplierGenerator.getState().finalMultiplier;
   }
 
   /**
-   * Allow a user to contribute a client seed.
-   * Rules:
-   * - Only contributions for the same vehicle are accepted.
-   * - Max contributions per vehicle is enforced.
-   * - Each user can only contribute once.
+   * Move the multiplier forward by one step.
+   * Crashes the vehicle when it reaches the final multiplier.
+   * Call this repeatedly in a game loop after setDestination().
    */
-  public updateClientSeed(
-    vehicle: VehicleTypeEnum,
-    seedInfo: ClientSeedContributorI
-  ): boolean {
-    // Other vehicles cannot contribute
-    if (this.type !== vehicle) return false;
+  public accelerate(): void {
+    const { currentMultiplier, finalMultiplier, status } = this.liveState;
 
-    if (!this.clientSeedDetails) {
-      this.clientSeedDetails = { clientSeed: "", clientSeedContributions: [] };
+    // Skip if already crashed
+    if (status === VehicleStatusEnum.CRASHED) {
+      return;
     }
 
-    const { clientSeed, clientSeedContributions } = this.clientSeedDetails;
+    // Ensure provably fair results have been generated
+    if (!this.multiplierGenerator || !finalMultiplier) {
+      throw new Error(
+        "accelerate() failed: Final results must be generated before acceleration. Call setDestination() first."
+      );
+    }
 
-    // Vehicle has max seeds,no more contributions
-    const vehilceHasMaxSeeds =
-      clientSeedContributions.length >= VehicleManager.MAX_SEEDS_PER_VEHICLE;
-    if (vehilceHasMaxSeeds) return false;
+    // Calculate next multiplier
+    const increment = currentMultiplier * VehicleManager.MULTIPLIER_GROWTH_RATE;
+    const newMultiplier = currentMultiplier + increment;
 
-    // User can only contribute to the client seed once
-    const alreadyUsed = clientSeedContributions.some(
-      ({ userId }) => userId === seedInfo.userId
-    );
-    if (alreadyUsed) return false;
+    // Check if vehicle has crashed
+    if (newMultiplier >= finalMultiplier) {
+      this.liveState.status = VehicleStatusEnum.CRASHED;
+      this.liveState.currentMultiplier = finalMultiplier;
+      return;
+    }
 
-    // Append new seed
-    this.clientSeedDetails.clientSeed = `${clientSeed}${seedInfo.seed}`.trim();
-    this.clientSeedDetails.clientSeedContributions.push(seedInfo);
+    if (status !== VehicleStatusEnum.RUNNING) {
+      this.liveState.status = VehicleStatusEnum.RUNNING;
+    }
 
-    return true;
+    // Continue with new multiplier
+    this.liveState.currentMultiplier = toFixedDecimals(newMultiplier, 3);
   }
 
+  /**
+   * Get the current state of the vehicle.
+   */
   public getState() {
     return {
-      multiplierData: {},
-      crashed: this.crashed,
-      currentMultiplier: this.currentMultiplier,
-      finalMultiplier: this.finalMultiplier,
+      liveState: this.liveState,
+      multiplierDetails: this.multiplierGenerator?.getState(),
       clientSeedDetails: this.clientSeedDetails,
     };
+  }
+
+  /**
+   * Update player count and bet amount for this vehicle.
+   * When players join, both values increase together.
+   */
+  public updatePlayerStats(totalPlayers: number, totalBetAmount: number): void {
+    this.liveState.totalPlayers = totalPlayers;
+    this.liveState.totalBetAmount = totalBetAmount;
+  }
+
+  /**
+   * Reset the vehicle to initial state.
+   * Clears all cargo, resets multiplier, and stops the engine.
+   */
+  public reset(): void {
+    const initialState = this.initializeState(this.liveState.type);
+
+    this.liveState = initialState.liveState;
+    this.clientSeedDetails = initialState.clientSeedDetails;
+    this.multiplierGenerator = null;
   }
 }

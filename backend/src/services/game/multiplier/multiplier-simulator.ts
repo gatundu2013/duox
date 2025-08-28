@@ -2,7 +2,7 @@ import {
   MultiplierDistributionBucketT,
   MultiplierDistributionKeyT,
   MultiplierRangeT,
-} from "../../../types/game";
+} from "../../../types/backend/game/multiplier";
 import { toFixedDecimals } from "../../../utils/to-fixed-decimals";
 import { MultiplierGenerator } from "./multiplier-generator";
 

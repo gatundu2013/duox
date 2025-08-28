@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { TokenExpiredError } from "jsonwebtoken";
 import { JWT_CONFIG } from "../config/env";
-import { JwtPayloadI } from "../types/auth";
+import { JwtPayloadI } from "../types/backend/auth";
 
 export function requireJwtAuth(
   req: Request,

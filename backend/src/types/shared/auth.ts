@@ -1,6 +1,15 @@
-import { OtpPurposeEnum } from "./enums";
-
 export const reservedUsernames = ["admin", "support"] as const;
+
+export enum OtpPurposeEnum {
+  REGISTER = "register",
+  RESET_PASSWORD = "reset_password",
+  CHANGE_PASSWORD = "change_password",
+}
+
+export enum UserRoleEnum {
+  ADMIN = "admin",
+  PLAYER = "player",
+}
 
 export interface RegisterPayloadI {
   username: string;
