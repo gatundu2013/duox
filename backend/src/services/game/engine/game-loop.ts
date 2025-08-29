@@ -5,6 +5,8 @@ import { roundManager } from "./round-manager";
 class GameLoop {
   private static instance: GameLoop;
   private static readonly BETTING_WINDOW_SEC = 5;
+  private static readonly COUNT_DOWN_TICK_MS = 100;
+  private static readonly INCREMENT_MULTIPLIER_TICK_MS = 100;
 
   private isRunning: boolean;
 
@@ -64,18 +66,31 @@ class GameLoop {
        * EmitInfo - {roundPhase,countdown}
        */
       console.log(countdown);
-      await this.delay(100);
+      await this.delay(GameLoop.COUNT_DOWN_TICK_MS);
     }
   }
 
   private async preparingPhase() {
     roundManager.setRoundPhase(RoundPhaseEnum.PREPARING);
-
     roundManager.generateFinalRoundResults();
   }
+
   private async runningPhase() {
     roundManager.setRoundPhase(RoundPhaseEnum.RUNNING);
+
+    while (!roundManager.haveAllVehicleCrashed()) {
+      roundManager.incrementMultipliers();
+      const state = roundManager.getVehicleRunningMultiplier();
+      console.log("Vehicles", state.bodaboda, state.matatu);
+      await this.delay(GameLoop.INCREMENT_MULTIPLIER_TICK_MS);
+    }
+
+    const state = roundManager.getVehicleRunningMultiplier();
+    console.log("all vehicles have crashed", state.bodaboda, state.matatu);
+
+    await this.delay(10000);
   }
+
   private async endPhase() {
     roundManager.setRoundPhase(RoundPhaseEnum.ENDED);
   }

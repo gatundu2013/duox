@@ -176,6 +176,15 @@ class RoundManager {
     return this.roundPhase;
   }
 
+  public getVehicleRunningMultiplier() {
+    const state: Record<VehicleTypeEnum, number> = {} as any;
+    for (let key in this.vehicles) {
+      const typedKey = key as VehicleTypeEnum;
+      state[typedKey] = this.vehicles[typedKey].getCurrentMultiplier();
+    }
+    return state;
+  }
+
   /**
    * Bets are allowed only in BETTING phase AND after server seeds exist for all vehicles.
    */

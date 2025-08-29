@@ -206,17 +206,6 @@ export class VehicleManager {
   }
 
   /**
-   * Get the current state of the vehicle.
-   */
-  public getState() {
-    return {
-      liveState: this.liveState,
-      multiplierDetails: this.multiplierGenerator?.getState(),
-      clientSeedDetails: this.clientSeedDetails,
-    };
-  }
-
-  /**
    * Reset the vehicle to initial state.
    * Clears all cargo, resets multiplier, and stops the engine.
    */
@@ -226,5 +215,19 @@ export class VehicleManager {
     this.liveState = initialState.liveState;
     this.clientSeedDetails = initialState.clientSeedDetails;
     this.multiplierGenerator = null;
+  }
+
+  //-------- Getters -------------
+
+  public getState() {
+    return {
+      liveState: this.liveState,
+      multiplierDetails: this.multiplierGenerator?.getState(),
+      clientSeedDetails: this.clientSeedDetails,
+    };
+  }
+
+  public getCurrentMultiplier() {
+    return this.liveState.currentMultiplier;
   }
 }
