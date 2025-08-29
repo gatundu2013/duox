@@ -19,6 +19,7 @@ class RoundManager {
     RoundPhaseEnum,
     readonly RoundPhaseEnum[]
   > = {
+    [RoundPhaseEnum.IDLE]: [RoundPhaseEnum.BETTING, RoundPhaseEnum.ERROR],
     [RoundPhaseEnum.BETTING]: [RoundPhaseEnum.PREPARING, RoundPhaseEnum.ERROR],
     [RoundPhaseEnum.PREPARING]: [RoundPhaseEnum.RUNNING, RoundPhaseEnum.ERROR],
     [RoundPhaseEnum.RUNNING]: [RoundPhaseEnum.ENDED, RoundPhaseEnum.ERROR],
@@ -67,7 +68,7 @@ class RoundManager {
    */
   private initializeState(): InitialRoundStateI {
     return {
-      roundPhase: RoundPhaseEnum.BETTING,
+      roundPhase: RoundPhaseEnum.IDLE,
       topStakers: [],
       roundId: crypto.randomUUID(),
     };
@@ -84,10 +85,15 @@ class RoundManager {
       );
     }
 
+    const hashedServerSeeds: Record<VehicleTypeEnum, string> = {} as any;
+
     for (let key in this.vehicles) {
       const typedKey = key as VehicleTypeEnum;
-      this.vehicles[typedKey].startEngine();
+      const hashedServerSeed = this.vehicles[typedKey].startEngine();
+      hashedServerSeeds[typedKey] = hashedServerSeed;
     }
+
+    return hashedServerSeeds;
   }
 
   /**
@@ -149,11 +155,6 @@ class RoundManager {
     return allowedNextPhases.includes(nextPhase);
   }
 
-  // Utility method to get valid next phases (useful for debugging/logging)
-  public getAllowedNextPhases(): readonly RoundPhaseEnum[] {
-    return this.validRoundTransition[this.roundPhase];
-  }
-
   // -------- SETTERS -----------
   public setRoundPhase(roundPhase: RoundPhaseEnum) {
     if (!this.isRoundPhaseTransitionValid(roundPhase)) {
@@ -162,7 +163,28 @@ class RoundManager {
           `Allowed transitions: ${this.getAllowedNextPhases()}`
       );
     }
+
     this.roundPhase = roundPhase;
+  }
+
+  // ---------- GETTERS ------------
+  public getAllowedNextPhases(): readonly RoundPhaseEnum[] {
+    return this.validRoundTransition[this.roundPhase];
+  }
+
+  public getRoundPhase(): RoundPhaseEnum {
+    return this.roundPhase;
+  }
+
+  /**
+   * Bets are allowed only in BETTING phase AND after server seeds exist for all vehicles.
+   */
+  public isPlacingBetAllowed() {
+    if (this.roundPhase !== RoundPhaseEnum.BETTING) return false;
+    return Object.values(this.vehicles).every((vehicle) => {
+      const state = vehicle.getState().multiplierDetails?.serverSeed;
+      return Boolean(state);
+    });
   }
 }
 

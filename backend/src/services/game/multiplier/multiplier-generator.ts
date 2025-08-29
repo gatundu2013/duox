@@ -33,7 +33,7 @@ export class MultiplierGenerator {
     };
   }
 
-  public generateServerSeed(): void {
+  public generateServerSeed(): string {
     const serverSeed = crypto.randomBytes(32).toString("hex");
 
     const hashedServerSeed = crypto
@@ -43,6 +43,8 @@ export class MultiplierGenerator {
 
     this.multiplierDetails.serverSeed = serverSeed;
     this.multiplierDetails.hashedServerSeed = hashedServerSeed;
+
+    return hashedServerSeed;
   }
 
   private generateMultiplierHash(): void {

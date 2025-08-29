@@ -72,9 +72,10 @@ export class VehicleManager {
    * Start the engine by generating a server seed and its hash.
    * Call this before loading cargo or setting destination.
    */
-  public startEngine(): void {
+  public startEngine(): string {
     this.multiplierGenerator = new MultiplierGenerator();
-    this.multiplierGenerator.generateServerSeed();
+    const hashedServerSeed = this.multiplierGenerator.generateServerSeed();
+    return hashedServerSeed;
   }
 
   /**
