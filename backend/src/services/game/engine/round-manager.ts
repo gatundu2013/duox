@@ -5,14 +5,14 @@ import { VehicleManager } from "./vehicle-manager";
 import crypto from "node:crypto";
 
 /**
- * Coordinates a single game round lifecycle across all vehicles.
+ * Manages one game round from start to finish.
  *
- * Responsibilities:
- * - Initialize per-round state (id, phase, top stakers)
- * - Create and manage per-vehicle managers
- * - Orchestrate provably-fair steps: server seed, final results
- * - Advance multipliers during the RUNNING phase
- * - Report when all vehicles have crashed and reset round state
+ * What it does:
+ * - Sets up round state
+ * - Creates vehicle managers for each vehicle type
+ * - Handles fair game steps: server seed, final results
+ * - Moves multipliers forward during RUNNING phase
+ * - Tells when all vehicles crash and resets for next round
  */
 class RoundManager {
   public readonly validRoundTransition: Record<
@@ -51,9 +51,6 @@ class RoundManager {
     return RoundManager.instance;
   }
 
-  /**
-   * Instantiate a manager for every vehicle type.
-   */
   private createVehicles() {
     let vehicles: Record<VehicleTypeEnum, VehicleManager> = {} as any;
     for (let key of Object.values(VehicleTypeEnum)) {
@@ -63,9 +60,6 @@ class RoundManager {
     return vehicles;
   }
 
-  /**
-   * Create the initial round state.
-   */
   private initializeState(): InitialRoundStateI {
     return {
       roundPhase: RoundPhaseEnum.IDLE,
@@ -74,10 +68,6 @@ class RoundManager {
     };
   }
 
-  /**
-   * Generate server seeds before the round starts (BETTING phase).
-   * This allows publishing the seed hash early for provable fairness.
-   */
   public generateServerSeeds() {
     if (this.roundPhase !== RoundPhaseEnum.BETTING) {
       throw new Error(
@@ -96,10 +86,6 @@ class RoundManager {
     return hashedServerSeeds;
   }
 
-  /**
-   * Generate final round results in the PREPARING phase.
-   * Uses collected client seeds + server seed to determine crash points.
-   */
   public generateFinalRoundResults() {
     if (this.roundPhase !== RoundPhaseEnum.PREPARING) {
       throw new Error(
@@ -113,10 +99,6 @@ class RoundManager {
     }
   }
 
-  /**
-   * Advance all vehicle multipliers by one tick.
-   * Should be called repeatedly by the outer game loop during RUNNING.
-   */
   public incrementMultipliers() {
     for (let key in this.vehicles) {
       const typedKey = key as VehicleTypeEnum;
@@ -124,13 +106,30 @@ class RoundManager {
     }
   }
 
-  /**
-   * Check whether all vehicles have finished (crashed) for this round.
-   */
   public haveAllVehicleCrashed() {
     return Object.values(this.vehicles).every((vehicle) =>
       vehicle.hasCrashed()
     );
+  }
+
+  /**
+   * Bets are allowed only in BETTING phase AND after server seeds exist for all vehicles.
+   */
+  public isPlacingBetAllowed() {
+    if (this.roundPhase !== RoundPhaseEnum.BETTING) return false;
+    return Object.values(this.vehicles).every((vehicle) => {
+      const state = vehicle.getState().multiplierDetails?.serverSeed;
+      return Boolean(state);
+    });
+  }
+
+  /**
+   * Checks if moving from current phase to next phase is allowed.
+   * Example: BETTING → PREPARING is OK, but RUNNING → BETTING is not.
+   */
+  private isRoundPhaseTransitionValid(nextPhase: RoundPhaseEnum) {
+    const allowedNextPhases = this.validRoundTransition[this.roundPhase];
+    return allowedNextPhases.includes(nextPhase);
   }
 
   /**
@@ -150,12 +149,8 @@ class RoundManager {
     }
   }
 
-  private isRoundPhaseTransitionValid(nextPhase: RoundPhaseEnum) {
-    const allowedNextPhases = this.validRoundTransition[this.roundPhase];
-    return allowedNextPhases.includes(nextPhase);
-  }
-
   // -------- SETTERS -----------
+
   public setRoundPhase(roundPhase: RoundPhaseEnum) {
     if (!this.isRoundPhaseTransitionValid(roundPhase)) {
       throw new Error(
@@ -168,6 +163,7 @@ class RoundManager {
   }
 
   // ---------- GETTERS ------------
+
   public getAllowedNextPhases(): readonly RoundPhaseEnum[] {
     return this.validRoundTransition[this.roundPhase];
   }
@@ -183,17 +179,6 @@ class RoundManager {
       state[typedKey] = this.vehicles[typedKey].getCurrentMultiplier();
     }
     return state;
-  }
-
-  /**
-   * Bets are allowed only in BETTING phase AND after server seeds exist for all vehicles.
-   */
-  public isPlacingBetAllowed() {
-    if (this.roundPhase !== RoundPhaseEnum.BETTING) return false;
-    return Object.values(this.vehicles).every((vehicle) => {
-      const state = vehicle.getState().multiplierDetails?.serverSeed;
-      return Boolean(state);
-    });
   }
 }
 
