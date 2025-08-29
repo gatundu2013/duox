@@ -189,7 +189,7 @@ export class VehicleManager {
     }
 
     // Continue with new multiplier
-    this.liveState.currentMultiplier = toFixedDecimals(newMultiplier, 3);
+    this.liveState.currentMultiplier = newMultiplier;
   }
 
   /**
@@ -228,6 +228,6 @@ export class VehicleManager {
   }
 
   public getCurrentMultiplier() {
-    return this.liveState.currentMultiplier;
+    return toFixedDecimals(this.liveState.currentMultiplier, 2);
   }
 }
