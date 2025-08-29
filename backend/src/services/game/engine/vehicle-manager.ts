@@ -200,6 +200,10 @@ export class VehicleManager {
     this.liveState.totalBetAmount = totalBetAmount;
   }
 
+  public hasCrashed() {
+    return this.liveState.status === VehicleStatusEnum.CRASHED;
+  }
+
   /**
    * Get the current state of the vehicle.
    */

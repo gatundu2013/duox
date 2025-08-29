@@ -7,7 +7,6 @@ export enum RoundStatusEnum {
 }
 
 export enum RoundPhaseEnum {
-  IDLE = "idle",
   BETTING = "betting",
   RUNNING = "running",
   ENDED = "ended",
