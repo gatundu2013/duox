@@ -166,4 +166,4 @@ class RoundManager {
   }
 }
 
-export const roundStateManager = RoundManager.getInstance();
+export const roundManager = RoundManager.getInstance();
