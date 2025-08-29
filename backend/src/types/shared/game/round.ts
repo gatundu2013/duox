@@ -1,3 +1,5 @@
+import { VehicleTypeEnum } from "./vehicle";
+
 export enum RoundStatusEnum {
   PENDING = "pending",
   RUNNING = "running",
@@ -11,4 +13,13 @@ export enum RoundPhaseEnum {
   ENDED = "ended",
   PREPARING = "preparing",
   ERROR = "error",
+}
+
+export interface TopStakersI {
+  userId: string;
+  username: string;
+  stake: number;
+  vehicle: VehicleTypeEnum;
+  cashoutMultiplier: number | null;
+  payout: number | null;
 }

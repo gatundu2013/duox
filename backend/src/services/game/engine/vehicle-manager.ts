@@ -192,6 +192,15 @@ export class VehicleManager {
   }
 
   /**
+   * Update player count and bet amount for this vehicle.
+   * When players join, both values increase together.
+   */
+  public updatePlayerStats(totalPlayers: number, totalBetAmount: number): void {
+    this.liveState.totalPlayers = totalPlayers;
+    this.liveState.totalBetAmount = totalBetAmount;
+  }
+
+  /**
    * Get the current state of the vehicle.
    */
   public getState() {
@@ -200,15 +209,6 @@ export class VehicleManager {
       multiplierDetails: this.multiplierGenerator?.getState(),
       clientSeedDetails: this.clientSeedDetails,
     };
-  }
-
-  /**
-   * Update player count and bet amount for this vehicle.
-   * When players join, both values increase together.
-   */
-  public updatePlayerStats(totalPlayers: number, totalBetAmount: number): void {
-    this.liveState.totalPlayers = totalPlayers;
-    this.liveState.totalBetAmount = totalBetAmount;
   }
 
   /**
