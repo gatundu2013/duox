@@ -19,9 +19,9 @@ export async function initApp() {
   try {
     await connectPostgres();
     await connectRedis();
-    socketGateway.init(httpServer);
     gameLoop.startGameLoop();
 
+    socketGateway.init(httpServer);
     httpServer.listen(SERVER_CONFIG.PORT, () => {
       console.log(
         `${ICONS.SUCCESS} The server is running on port ${SERVER_CONFIG.PORT}`
