@@ -99,7 +99,7 @@ class RoundManager {
     }
   }
 
-  public incrementMultipliers() {
+  public incrementAllVehiclesMultipliers() {
     for (let key in this.vehicles) {
       const typedKey = key as VehicleTypeEnum;
       this.vehicles[typedKey].accelerate();
@@ -115,7 +115,7 @@ class RoundManager {
   /**
    * Bets are allowed only in BETTING phase AND after server seeds exist for all vehicles.
    */
-  public isPlacingBetAllowed() {
+  public isBettingWindowOpen() {
     if (this.roundPhase !== RoundPhaseEnum.BETTING) return false;
     return Object.values(this.vehicles).every((vehicle) => {
       const state = vehicle.getState().multiplierDetails?.serverSeed;
@@ -172,7 +172,7 @@ class RoundManager {
     return this.roundPhase;
   }
 
-  public getVehicleRunningMultiplier() {
+  public getVehiclesRunningMultipliers() {
     const state: Record<VehicleTypeEnum, number> = {} as any;
     for (let key in this.vehicles) {
       const typedKey = key as VehicleTypeEnum;

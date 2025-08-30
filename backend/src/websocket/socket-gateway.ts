@@ -1,15 +1,17 @@
 import { Socket, Server as SocketIoServer } from "socket.io";
 import { Server as HttpServer } from "http";
+import {
+  ServerToClientPayloadsI,
+  SocketEmitEventName,
+} from "../types/shared/game/socket-events";
 
 /**
- * Manages real-time communication with game clients.
+ * SocketGateway - WebSocket communication game.
  *
- * What it does:
- * - Sets up socket.io server for real-time updates
- * - Handles client connections and disconnections
- * - Sends game events to all clients or specific rooms
- * - Tracks connected users and room management
+ * Manages real-time connections and broadcasts game events to clients.
+ * Singleton pattern with type-safe event emission.
  */
+
 class SocketGateway {
   private static instance: SocketGateway;
   private io: SocketIoServer | null;
@@ -53,32 +55,37 @@ class SocketGateway {
         clientId: socket.id,
       });
     });
-
-    this.io.on("disconnect", () => {
-      console.log("[SocketGateway] Server disconnected");
-    });
   }
 
-  public emitToAllClients<T>(eventName: string, payload: T) {
-    if (!this.io) {
-      console.warn("[SocketGateway] Cannot emit - server not initialized");
-      return;
-    }
-
-    console.log(`[SocketGateway] Emitting '${eventName}' to all clients`);
-    this.io.emit(eventName, payload);
-  }
-
-  public emitToClient<T>(socket: Socket, eventName: string, payload: T) {
+  public emitToClient<T extends SocketEmitEventName>(
+    socket: Socket,
+    eventName: T,
+    payload: ServerToClientPayloadsI[T]
+  ) {
     if (!this.io) {
       console.warn("[SocketGateway] Cannot emit - server not initialized");
       return;
     }
 
     console.log(
-      `[SocketGateway] Emitting '${eventName}' to client ${socket.id}`
+      `[SocketGateway] Emitting '${String(eventName)}' to client ${socket.id}`
     );
-    socket.emit(eventName, payload);
+    (socket as any).emit(eventName, payload);
+  }
+
+  public emitToAllClients<T extends SocketEmitEventName>(
+    eventName: T,
+    payload: ServerToClientPayloadsI[T]
+  ) {
+    if (!this.io) {
+      console.warn("[SocketGateway] Cannot emit - server not initialized");
+      return;
+    }
+
+    console.log(
+      `[SocketGateway] Emitting '${String(eventName)}' to all clients`
+    );
+    (this.io as any).emit(eventName, payload);
   }
 }
 
