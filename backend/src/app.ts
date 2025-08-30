@@ -6,8 +6,11 @@ import { connectRedis } from "./db/connection/redis";
 import { v1Router } from "./routes/v1/v1-router";
 import { ICONS } from "./utils/icons";
 import { gameLoop } from "./services/game/engine/game-loop";
+import { createServer } from "http";
+import { socketGateway } from "./websocket/socket-gateway";
 
 const app = express();
+const httpServer = createServer(app);
 
 app.use(express.json());
 app.use("/api/v1", v1Router);
@@ -16,9 +19,10 @@ export async function initApp() {
   try {
     await connectPostgres();
     await connectRedis();
+    socketGateway.init(httpServer);
     gameLoop.startGameLoop();
 
-    app.listen(SERVER_CONFIG.PORT, () => {
+    httpServer.listen(SERVER_CONFIG.PORT, () => {
       console.log(
         `${ICONS.SUCCESS} The server is running on port ${SERVER_CONFIG.PORT}`
       );
